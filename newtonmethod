@@ -1,0 +1,52 @@
+Matlab function to Newton's Iteration Method
+
+
+function [x, iter,err1, conv] = newton(x0, G, J)
+
+xx = x0;
+nMax = 100;
+TOL = 1e-12;
+maxval = 100000;
+e = 10000;
+
+err1 = zeros(nMax, 1);
+
+
+while (nMax > 0)
+    JJ = feval(J, xx); %evaluate jacobian
+    if abs(det(JJ)) <TOL %%error check
+        error('Jacobian singular');
+        abort;
+    end
+
+    xn = xx - inv(JJ)*feval(G,xx); %%find new x0
+    e = norm((xx - xn), inf); %%find error
+    err1(nMax) = e; %% store error
+    conv = err1(nMax)./[1; err1((nMax-1))^2] %%convergence
+    
+
+    
+if abs(feval(G, xx)) < TOL
+  x = xn;
+  iter = 100-nMax;
+  return;
+end
+
+if abs(feval(G,xx)) > maxval
+    iter = 100 - nMax;
+    disp(['iterations = ',num2str(iter)]);
+    error('Solution diverges');
+    abort;
+end
+
+
+
+nMax = nMax -1 ;
+xx = xn;
+
+
+end
+
+
+end
+
