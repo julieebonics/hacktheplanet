@@ -1,0 +1,225 @@
+/* This sample code shows matrix transformations, rotations (about x,y,z) and building 3D objects using primitives*/
+
+void AppWindow::loadModel ( int model )
+ {
+   float f;
+   GsString head, torso, leftarm, rightarm, leftleg, rightleg;
+   GsString goat, voldemort, rob, trex, dbob, floor;
+
+   f = .10f; 
+   head = "../head.obj";
+   torso = "../torso.obj";
+   leftarm = "../numps.obj";
+   rightarm = "../numps.obj";
+   leftleg = "../leftleg.obj";
+   rightleg = "../rightleg.obj";
+   floor = "../floor.obj";
+   voldemort = "../voldemort.obj";
+   trex = "../trex.obj";
+   dbob = "../doodlebob.obj";
+
+
+   std::cout<<"Loading "<<head<<"...\n";
+   if ( !_gsm.load ( head ) ) std::cout<<"Error!\n";
+   printInfo ( _gsm );
+   _gsm.scale ( f ); // to fit our camera space
+   _head.build(_gsm);
+ ...}
+ 
+ void AppWindow::glutIdle() {
+
+	zot += anything;
+	aot += armarm;
+	lot += anything;
+	rot -= anything;
+	aot1 -= armarm;
+	test += .001f;
+
+	if (perspview == true)
+		test2 += .001f;
+
+	if (zot > GS_TORAD(35.0f) || zot < GS_TORAD(-35.0f))
+		anything *= -1.0f;
+	if (aot > GS_TORAD(45.0f) || aot < GS_TORAD(-45.0f))
+		armarm *= -1.0f;
+
+	if (lot > GS_TORAD(25.0f) || lot < GS_TORAD(-25.0f))
+		anything *= -1.0f;
+	if (rot > GS_TORAD(-25.0f) || rot < GS_TORAD(25.0f))
+		anything *= 1.0f;
+	redraw();
+
+
+}
+
+
+void AppWindow::glutDisplay ()
+ {
+   // Clear the rendering window
+   glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+   // Build a cross with some lines (if not built yet):
+   if ( _axis.changed ) // needs update
+    { _axis.build(1.0f); // axis has radius 1.0
+    }
+
+   // Define our scene transformation:
+   GsMat rx, ry, stransf;
+   rx.rotx ( _rotx );
+   ry.roty ( _roty );
+   stransf = rx*ry; // set the scene transformation matrix
+
+   // Define our projection transformation:
+   // (see demo program in gltutors-projection.7z, we are replicating the same behavior here)
+   GsMat camview, persp, sproj,sproj1, perspfixed;
+
+   /*sackboy translations, reference objects and the perspective projection*/
+
+   GsMat leftarmtrans{ -1, 0, 0, .08f,
+				  0, 1, 0, .6f,
+				  0, 0, 1, .015f,
+				  0, 0, 0,  1 };
+
+   GsMat rightarmtrans{ 1, 0, 0, -.10f,
+					0, 1, 0, .6f,
+					0, 0, 1, .013f,
+					0, 0, 0,  1 };
+
+   GsMat headtrans{ 1, 0, 0, 0,
+					0, 1, 0, .8f,
+					0, 0, 1, 0,
+					0, 0, 0,  1 };
+
+   GsMat torsotrans{ 1, 0, 0, 0,
+					0, 1, 0, .24f,
+					0, 0, 1, .1f,
+					0, 0, 0,  1 };
+
+   GsMat leftlegtrans{ 1, 0, 0, -.1f,
+					0, 1, 0, .29f,
+					0, 0, 1, .1f,
+					0, 0, 0,  1 };
+
+   GsMat rightlegtrans{1, 0, 0, .06f,
+				0, 1, 0, .29f,
+				0, 0, 1, 0,
+				0, 0, 0,  1 };
+
+   GsMat voltrans{ 1, 0 , 0, -0.9f,
+	   0, 1, 0 ,-.2f,
+	   0, 0, 1, -1.3f,
+	   0, 0, 0 ,1 };
+
+   GsMat trextrans{1, 0 , 0, .9f,
+	   0, 1, 0 ,.32f,
+	   0, 0, 1, 1.3f,
+	   0, 0, 0 ,1 };
+
+   GsMat floortrans{ 1, 0 , 0, 0,
+					0, 1, 0, -.19f,
+					0, 0, 1, 0,
+					0, 0, 0, 1 };
+    
+   GsMat figshad{ 20, 0, 0, 0,
+				 0, 0, 0, 0,
+				 0, -10, 20, 0,
+				 0, 0, 0, 20 };
+   
+
+   GsMat dbtrans{ 1, 0 , 0, -1.0f,
+	   0, 1, 0 , 0,
+	   0, 0, 1, -1.7f,
+	   0, 0, 0 ,1 };
+
+   
+   //figshad.translation(.5, .5, .5);
+   
+   whatever.translation(rurh, 0, dunh);
+   //sackboy rotations 
+   GsMat headrot1;
+   headrot1.roty(zot);
+   GsMat armrot;
+   armrot.rotx(aot);
+   GsMat legrot;
+   legrot.rotx(lot);
+   GsMat legrot1;
+   legrot1.rotx(rot);
+   GsMat armrot1;
+   armrot1.rotx(aot1);
+   GsMat bodrot;
+   bodrot.roty(test);
+   GsMat bodrot1;
+   bodrot1.rotx(test1);
+   GsMat sackrot;
+   sackrot.roty(test3);
+
+
+   GsVec eye(0, 2.5f, 2.5f), center(0,0,0), up(0,1,0);
+   if (_viewaxis)
+	   eye.set(0, 2.5f, 2.5f);
+   camview.lookat ( eye, center, up ); // set our 4x4 "camera" matrix
+
+   float aspect=1.0f, znear=0.1f, zfar=50.0f;
+  
+   persp.perspective ( _fovy, aspect, znear, zfar ); // set our 4x4 perspective matrix
+  
+   //new "eye" and new "camera"
+   if (perspview == true) {
+
+	   eye.set(-1.0f, 1.7f, .2f);
+	   eye.roty(test2);
+	   camview.lookat(eye, center, up);
+	   perspfixed.perspective(_fovy, 1.0f, 1.0f, 1.0f);
+   }
+	   
+	   
+
+  
+
+
+   // Our matrices are in "line-major" format, so vertices should be multiplied on the 
+   // right side of a matrix multiplication, therefore in the expression below camview will
+   // affect the vertex before persp, because v' = (persp*camview)*v = (persp)*(camview*v).
+   sproj = persp * camview; // set final scene projection
+  // sproj1 = perspfixed * camview;
+
+   //  Note however that when the shader receives a matrix it will store it in column-major 
+   //  format, what will cause our values to be transposed, and we will then have in our 
+   //  shaders vectors on the left side of a multiplication to a matrix.
+
+   // Draw:
+   
+ //  _axis.draw(stransf, sproj);
+
+   _head.draw (stransf*whatever*headtrans*headrot1, sproj, _light);
+   _torso.draw(stransf*whatever*torsotrans, sproj, _light);
+   _leftarm.draw(stransf*whatever*leftarmtrans*armrot, sproj, _light);
+   _rightarm.draw(stransf*whatever*rightarmtrans*armrot1, sproj, _light);
+   _leftleg.draw(stransf*whatever*leftlegtrans*legrot, sproj, _light);
+   _rightleg.draw(stransf*whatever*rightlegtrans*legrot1, sproj, _light);
+   _floor.draw(stransf*floortrans, sproj, _light);
+   _voldemort.draw(stransf*bodrot*bodrot1*voltrans, sproj, _light);
+   _trex.draw(stransf*trextrans, sproj, _light);
+   _dbob.draw(stransf*dbtrans, sproj, _light);
+
+   GsLight lightlight; 
+   lightlight.set(GsVec(0, 30, 20), GsColor(90, 90, 90, 255), GsColor::black, GsColor::black);
+   _head.draw(stransf*figshad*whatever*headtrans*headrot1, sproj, lightlight);
+   _torso.draw(stransf*figshad*whatever*torsotrans*sackrot, sproj, lightlight);
+   _leftarm.draw(stransf*figshad*whatever*leftarmtrans*armrot, sproj, lightlight);
+   _rightarm.draw(stransf*figshad*whatever*rightarmtrans*armrot1, sproj, lightlight);
+   _leftleg.draw(stransf*figshad*whatever*leftlegtrans*legrot, sproj, lightlight);
+   _rightleg.draw(stransf*figshad*whatever*rightlegtrans*legrot1, sproj, lightlight);
+   _voldemort.draw(stransf*figshad*bodrot*bodrot1*voltrans, sproj, lightlight);
+   _trex.draw(stransf*figshad*trextrans, sproj, lightlight);
+   _dbob.draw(stransf*figshad*dbtrans, sproj, lightlight);
+
+
+  
+
+
+   // Swap buffers and draw:
+   glFlush();         // flush the pipeline (usually not necessary)
+   glutSwapBuffers(); // we were drawing to the back buffer, now bring it to the front
+}
+
